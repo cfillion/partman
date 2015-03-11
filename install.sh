@@ -3,12 +3,12 @@
 root="$(realpath -q "$1")"
 
 cd $(dirname $0)
-pwd="$(pwd)"
+src="$(pwd)"
 
 mkdir -pv "$root/parts"
 
-for file in skel/*; do
-  ln -svi "$pwd/$file" "$root/$(basename "$file")"
-done
+rsync -a "$src/src/" "$root/partman"
 
-ln -svi "$pwd" "$root/partman"
+for file in skel/*; do
+  cp -i "$src/$file" "$root/$(basename "$file")"
+done
