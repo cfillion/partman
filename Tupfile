@@ -1,0 +1,15 @@
+TARGET = partman
+CXX = clang++
+
+CXXFLAGS = -Wall -Wextra -pipe
+CXXFLAGS += -fcolor-diagnostics
+CXXFLAGS += -g -O2 -std=c++11
+
+LDFLAGS = -lboost_program_options -lyaml-cpp
+
+ifeq (@(TUP_PLATFORM),macosx)
+  LDFLAGS += -stdlib=libc++
+endif
+
+: foreach src/*.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
+: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> $(TARGET)

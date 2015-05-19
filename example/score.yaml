@@ -1,0 +1,16 @@
+---
+header:
+  title: "My Score"
+paper:
+  page_size: "letter"
+parts:
+  violin: ["Violin", "Vln.", c'', "violin"]
+  bass:  ["Bass", "Bass", c, "electric bass (finger)"]
+  piano: ["Piano", "Pno.", [c'', c']]
+scores:
+  -
+    parts:
+      - violin,
+      - [bass, piano]
+    layout: true
+    midi: true
