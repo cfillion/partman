@@ -42,6 +42,24 @@ defineMusicPart = #(define-music-function
   #}
 )
 
+definePianoPart = #(define-music-function
+  (parser location name long_name short_name pitch_up pitch_down)
+  (symbol? markup? markup? ly:pitch? ly:pitch?)
+
+  #{
+    \definePart #name #long_name #short_name #'PianoStaff <<
+      \new Staff \with { \remove Staff_performer } \relative #pitch_up  {
+        #__setup
+        \include #(part-file (string->symbol (string-concatenate (list (symbol->string name) "_up"))))
+      }
+      \new Staff \with { \remove Staff_performer } \relative #pitch_down {
+        #__setup
+        \include #(part-file (string->symbol (string-concatenate (list (symbol->string name) "_down"))))
+      }
+    >>
+  #}
+)
+
 defineDrumPart = #(define-music-function
   (parser location name long_name short_name)
   (symbol? markup? markup?)
@@ -66,6 +84,22 @@ part = #(define-music-function
         \set Staff.shortInstrumentName = #(hashq-ref this_part 'short_name)
 
         #__setup
+        #(hashq-ref this_part 'music)
+      }
+    #}
+  )
+)
+
+pianoPart = #(define-music-function
+  (parser location name)
+  (symbol?)
+
+  (let ((this_part (hashq-ref __parts name)))
+    #{
+      \new #(hashq-ref this_part 'staff_type) \with { \consists Staff_performer } {
+        \set PianoStaff.instrumentName = #(hashq-ref this_part 'long_name)
+        \set PianoStaff.shortInstrumentName = #(hashq-ref this_part 'short_name)
+
         #(hashq-ref this_part 'music)
       }
     #}
