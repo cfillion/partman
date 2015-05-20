@@ -51,4 +51,54 @@ private:
   BraceType m_type;
 };
 
+class Variable : public Token
+{
+public:
+  Variable(const std::string &name, const TokenPtr value)
+    : m_name(name), m_value(value) {}
+
+protected:
+  virtual std::string code() const override;
+
+private:
+  std::string m_name;
+  TokenPtr m_value;
+};
+
+class Boolean : public Token
+{
+public:
+  Boolean(const bool value) : m_value(value) {}
+
+protected:
+  virtual std::string code() const override;
+
+private:
+  bool m_value;
+};
+
+class String : public Token
+{
+public:
+  String(const std::string value) : m_value(value) {}
+
+protected:
+  virtual std::string code() const override;
+
+private:
+  std::string m_value;
+};
+
+class Literal : public Token
+{
+public:
+  Literal(const std::string value) : m_value(value) {}
+
+protected:
+  virtual std::string code() const override;
+
+private:
+  std::string m_value;
+};
+
 #endif

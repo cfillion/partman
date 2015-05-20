@@ -4,7 +4,7 @@
 #include <sys/ioctl.h>
 #include <yaml-cpp/yaml.h>
 
-#include "generator.hpp"
+#include "generators.hpp"
 
 using namespace std;
 using namespace boost;
@@ -21,7 +21,7 @@ bool process(const string &file)
     else
       root = YAML::LoadFile(file);
 
-    cout << ::Generator::from_yaml(root);
+    cout << Generators::from_yaml(root);
   }
   catch(std::exception &err) {
     cerr << format("%s: %s") % file % err.what() << endl;

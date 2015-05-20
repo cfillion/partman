@@ -1,6 +1,8 @@
 ---
 header:
   title: "My Score"
+  composer: "My Name"
+  tagline: 1
 paper:
   page_size: "letter"
 setup:

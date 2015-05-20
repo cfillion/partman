@@ -1,7 +1,9 @@
 #include "tokens.hpp"
 
+#include <boost/algorithm/string/replace.hpp>
 #include <sstream>
 
+using namespace boost;
 using namespace std;
 
 typedef stringstream sstream;
@@ -60,6 +62,9 @@ string Block::code() const
 
   ss << endl;
 
+  for(const TokenPtr child : children())
+    ss << child << endl;
+
   switch(m_type) {
   case BRACE:
     ss << "}";
@@ -70,4 +75,26 @@ string Block::code() const
   }
 
   return ss.str();
+}
+
+string Variable::code() const
+{
+  sstream ss;
+  ss << m_name << " = " << m_value;
+  return ss.str();
+}
+
+string Boolean::code() const
+{
+  return m_value ? "##t" : "##f";
+}
+
+string String::code() const
+{
+  return "\"" + replace_all_copy(m_value, "\"", "\\\"") + "\"";
+}
+
+string Literal::code() const
+{
+  return m_value;
 }
