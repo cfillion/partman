@@ -5,26 +5,37 @@
 #include <string>
 #include <vector>
 
+class Token;
+typedef std::shared_ptr<Token> TokenPtr;
+
 class Token
 {
-  friend std::ostream &operator<<(std::ostream &, const Token &);
+  friend std::ostream &operator<<(std::ostream &, const TokenPtr);
+  friend Token &operator<<(Token &, TokenPtr);
+
+public:
 
 protected:
-  virtual std::string code() const = 0;
-};
+  const std::vector<TokenPtr> &children() const { return m_children; }
+  virtual std::string code() const;
 
-class Command : Token
-{
 private:
-  std::vector<Token> m_arguments;
+  std::vector<TokenPtr> m_children;
 };
 
-class Expression : Token
+std::ostream &operator<<(std::ostream &, const TokenPtr);
+Token &operator<<(Token &, TokenPtr);
+
+class Command : public Token
 {
-private:
-  std::vector<Token> m_tokens;
-};
+public:
+  Command(std::string name) : m_name(name) {}
 
-std::ostream &operator<<(std::ostream &stream, const Token &token);
+protected:
+  virtual std::string code() const override;
+
+private:
+  std::string m_name;
+};
 
 #endif

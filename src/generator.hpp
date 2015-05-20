@@ -15,8 +15,9 @@ class Generator : public Token
 public:
   enum KeyType { HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
 
-  std::string code() const override;
+  static TokenPtr from_yaml(const YAML::Node &node);
 
-  static Generator from_yaml(YAML::Node &node);
+private:
+  static TokenPtr make_header(const YAML::Node &node);
 };
 #endif

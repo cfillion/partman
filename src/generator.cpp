@@ -17,17 +17,13 @@ const map<string, Generator::KeyType> KEY_TYPES = {
   {"score", Generator::SCORE},
 };
 
-string Generator::code() const
+TokenPtr Generator::from_yaml(const YAML::Node &root)
 {
-  return "";
-}
+  auto self = make_shared<Generator>();
 
-Generator Generator::from_yaml(YAML::Node &node)
-{
-  Generator self;
-
-  for(auto it = node.begin(); it != node.end(); it++) {
+  for(auto it = root.begin(); it != root.end(); it++) {
     const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
     
     if(!KEY_TYPES.count(key)) {
       throw Error(format("invalid key '%s'") % key);
@@ -37,6 +33,7 @@ Generator Generator::from_yaml(YAML::Node &node)
 
     switch(type) {
     case HEADER:
+      *self << make_header(node);
       break;
     case PAPER:
       break;
@@ -52,4 +49,10 @@ Generator Generator::from_yaml(YAML::Node &node)
   }
 
   return self;
+}
+
+TokenPtr Generator::make_header(const YAML::Node &node)
+{
+  auto cmd = make_shared<Command>("header");
+  return cmd;
 }
