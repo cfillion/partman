@@ -37,8 +37,8 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
   catch(YAML::BadConversion) {}
 
   try {
-    node.as<double>();
-    return make_shared<Literal>(value);
+    if(value.find('\\') != string::npos || node.as<double>())
+      return make_shared<Literal>(value);
   }
   catch(YAML::BadConversion) {}
 
