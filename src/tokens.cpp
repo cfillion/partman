@@ -62,7 +62,8 @@ string Block::code() const
     break;
   }
 
-  ss << NL;
+  if(children().size() > 0)
+    ss << NL;
 
   for(const TokenPtr<> child : children())
     ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
