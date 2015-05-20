@@ -10,14 +10,14 @@ typedef std::shared_ptr<Token> TokenPtr;
 
 class Token
 {
-  friend std::ostream &operator<<(std::ostream &, const TokenPtr);
+  // friend std::ostream &operator<<(std::ostream &, const TokenPtr);
   friend Token &operator<<(Token &, TokenPtr);
 
 public:
+  virtual std::string code() const;
 
 protected:
   const std::vector<TokenPtr> &children() const { return m_children; }
-  virtual std::string code() const;
 
 private:
   std::vector<TokenPtr> m_children;
@@ -31,7 +31,6 @@ class Command : public Token
 public:
   Command(const std::string &name) : m_name(name) {}
 
-protected:
   virtual std::string code() const override;
 
 private:
@@ -44,7 +43,6 @@ public:
   enum BraceType { BRACE, BRACKET };
   Block(const BraceType type) : m_type(type) {}
 
-protected:
   virtual std::string code() const override;
 
 private:
@@ -57,7 +55,6 @@ public:
   Variable(const std::string &name, const TokenPtr value)
     : m_name(name), m_value(value) {}
 
-protected:
   virtual std::string code() const override;
 
 private:
@@ -70,7 +67,6 @@ class Boolean : public Token
 public:
   Boolean(const bool value) : m_value(value) {}
 
-protected:
   virtual std::string code() const override;
 
 private:
@@ -82,7 +78,6 @@ class String : public Token
 public:
   String(const std::string value) : m_value(value) {}
 
-protected:
   virtual std::string code() const override;
 
 private:
@@ -94,7 +89,6 @@ class Literal : public Token
 public:
   Literal(const std::string value) : m_value(value) {}
 
-protected:
   virtual std::string code() const override;
 
 private:

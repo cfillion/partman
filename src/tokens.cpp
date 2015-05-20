@@ -9,6 +9,7 @@ using namespace std;
 typedef stringstream sstream;
 
 const string SPACE = "\x20";
+const string LEVEL = SPACE+SPACE;
 
 std::ostream &operator<<(ostream &stream, const TokenPtr token)
 {
@@ -63,7 +64,7 @@ string Block::code() const
   ss << endl;
 
   for(const TokenPtr child : children())
-    ss << child << endl;
+    ss << LEVEL << replace_all_copy(child->code(), "\n", "\n" + LEVEL) << endl;
 
   switch(m_type) {
   case BRACE:
