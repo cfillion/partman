@@ -12,6 +12,8 @@ using namespace Generators;
 
 enum KeyType { HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
 
+const string LILY_VERSION = "2.18.2";
+
 const map<string, KeyType> KEY_TYPES = {
   {"header", HEADER},
   {"paper", PAPER},
@@ -26,7 +28,11 @@ const string FALSE_STR = "false";
 
 TokenPtr Generators::from_yaml(const YAML::Node &root)
 {
+  auto version = make_shared<Command>("version");
+  *version << make_shared<String>(LILY_VERSION);
+
   auto out = make_shared<Token>();
+  *out << version;
 
   if(!root["header"])
     *out << default_header();
