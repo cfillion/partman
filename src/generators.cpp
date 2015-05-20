@@ -1,12 +1,13 @@
 #include "generators.hpp"
 
 #include <boost/format.hpp>
+#include <random>
 #include <yaml-cpp/yaml.h>
 
 #include "error.hpp"
 
 using namespace std;
-using namespace boost;
+using format = boost::format;
 
 enum KeyType { VERSION, HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
 
@@ -25,6 +26,17 @@ const map<string, KeyType> KEY_TYPES = {
 const string TRUE_STR = "true";
 const string FALSE_STR = "false";
 const string PAPER_SIZE = "paper-size";
+
+const int ID_LENGTH = 8;
+
+IdentifierMap Generator::s_identifiers;
+
+TokenPtr<> Generator::make_variable(const std::string &key,
+  const YAML::Node &node) const
+{
+  // TODO: support setting hashes values
+  return make_shared<Variable>(key, make_value(node));
+}
 
 TokenPtr<> Generator::make_value(const YAML::Node &node) const
 {
@@ -47,6 +59,27 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
   return make_shared<String>(value);
 }
 
+string Generator::id(const std::string &name) const
+{
+  if(s_identifiers.left.count(name))
+    return s_identifiers.left.at(name);
+
+  std::random_device rd;
+  std::default_random_engine engine(rd());
+  std::uniform_int_distribution<char> rand('a', 'z');
+
+  string random_str;
+  while(random_str.size() < ID_LENGTH || s_identifiers.right.count(random_str))
+    random_str.push_back(rand(engine));
+
+
+  const string identifier = "pm_" + random_str + "_" + name;
+
+  s_identifiers.insert(Identifier(name, identifier));
+
+  return identifier;
+}
+
 Header::Header()
 {
   m_block = make_shared<Block>(Block::BRACE);
@@ -64,7 +97,7 @@ void Header::read_yaml(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    *m_block << make_shared<Variable>(key, make_value(node));
+    *m_block << make_variable(key, node);
   }
 
   if(!root["tagline"])
@@ -94,8 +127,18 @@ void Paper::read_yaml(const YAML::Node &root)
     if(key == PAPER_SIZE)
       *m_paper_size = node.as<string>();
     else
-      *m_block << make_shared<Variable>(key, make_value(node));
+      *m_block << make_variable(key, node);
   }
+}
+
+Setup::Setup()
+{
+  m_block = make_shared<Block>(Block::BRACE);
+  m_token = make_shared<Variable>(id("setup"), m_block);
+}
+
+void Setup::read_yaml(const YAML::Node &root)
+{
 }
 
 Document::Document()
@@ -106,10 +149,14 @@ Document::Document()
   auto version = make_shared<Command>("version");
   *version << m_version;
 
+  auto point_click = make_shared<Command>("pointAndClickOff");
+
   *m_token
     << version
+    << point_click
     << m_header.token()
     << m_paper.token()
+    << m_setup.token()
   ;
 }
 

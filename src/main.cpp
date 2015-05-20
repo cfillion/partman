@@ -11,7 +11,7 @@ using namespace boost;
 
 bool process(const string &file)
 {
-  cerr << format("Pre-Processing %s...") % file << endl;
+  cerr << format("Pre-Processing '%s'") % file << endl;
 
   Document doc;
 
