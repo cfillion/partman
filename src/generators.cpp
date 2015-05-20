@@ -24,6 +24,7 @@ const map<string, KeyType> KEY_TYPES = {
 
 const string TRUE_STR = "true";
 const string FALSE_STR = "false";
+const string PAPER_SIZE = "paper-size";
 
 TokenPtr<> Generator::make_value(const YAML::Node &node) const
 {
@@ -37,7 +38,8 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
   catch(YAML::BadConversion) {}
 
   try {
-    if(value.find('\\') != string::npos || node.as<double>())
+    if(value.find('\\') != string::npos ||
+        value.find('#') == 0 || node.as<double>())
       return make_shared<Literal>(value);
   }
   catch(YAML::BadConversion) {}
@@ -69,6 +71,33 @@ void Header::read_yaml(const YAML::Node &root)
     *m_block << make_shared<Variable>("tagline", make_shared<Boolean>(false));
 }
 
+Paper::Paper()
+{
+  m_paper_size = make_shared<String>("letter");
+
+  auto ps_func = make_shared<Function>("set-paper-size");
+  *ps_func << m_paper_size;
+
+  m_block = make_shared<Block>(Block::BRACE);
+  *m_block << ps_func;
+
+  m_token = make_shared<Command>("paper");
+  *m_token << m_block;
+}
+
+void Paper::read_yaml(const YAML::Node &root)
+{
+  for(auto it = root.begin(); it != root.end(); it++) {
+    const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
+
+    if(key == PAPER_SIZE)
+      *m_paper_size = node.as<string>();
+    else
+      *m_block << make_shared<Variable>(key, make_value(node));
+  }
+}
+
 Document::Document()
 {
   m_token = make_shared<Token>();
@@ -76,9 +105,12 @@ Document::Document()
 
   auto version = make_shared<Command>("version");
   *version << m_version;
-  *m_token << version;
 
-  *m_token << m_header.token();
+  *m_token
+    << version
+    << m_header.token()
+    << m_paper.token()
+  ;
 }
 
 void Document::read_yaml(const YAML::Node &root)
@@ -101,6 +133,7 @@ void Document::read_yaml(const YAML::Node &root)
       m_header.read_yaml(node);
       break;
     case PAPER:
+      m_paper.read_yaml(node);
       break;
     case SETUP:
       break;

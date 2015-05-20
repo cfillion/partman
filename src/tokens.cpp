@@ -9,8 +9,9 @@ using namespace std;
 typedef stringstream sstream;
 
 const string NL = "\n";
-const string SPACE = "\x20";
-const string LEVEL = SPACE+SPACE;
+const string SP = "\x20";
+
+const string LEVEL = SP+SP;
 
 std::ostream &operator<<(ostream &stream, const TokenPtr<> token)
 {
@@ -44,7 +45,7 @@ string Command::code() const
   ss << "\\" << m_name;
 
   for(const TokenPtr<> child : children())
-    ss << SPACE << child;
+    ss << SP << child;
 
   return ss.str();
 }
@@ -82,9 +83,7 @@ string Block::code() const
 
 string Variable::code() const
 {
-  sstream ss;
-  ss << m_name << " = " << m_value;
-  return ss.str();
+  return m_name + " = " + m_value->code();
 }
 
 string Boolean::code() const
@@ -100,4 +99,16 @@ string String::code() const
 string Literal::code() const
 {
   return m_value;
+}
+
+string Function::code() const
+{
+  sstream ss;
+  ss << "#(" << m_name;
+
+  for(const TokenPtr<> child : children())
+    ss << SP << child;
+
+  ss << ")";
+  return ss.str();
 }

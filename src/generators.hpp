@@ -32,6 +32,17 @@ private:
   TokenPtr<Block> m_block;
 };
 
+class Paper : public Generator
+{
+public:
+  Paper();
+  void read_yaml(const YAML::Node &node) override;
+
+private:
+  TokenPtr<Block> m_block;
+  TokenPtr<String> m_paper_size;
+};
+
 class Document : public Generator
 {
 public:
@@ -41,6 +52,7 @@ public:
 private:
   TokenPtr<String> m_version;
   Header m_header;
+  Paper m_paper;
 };
 
 #endif

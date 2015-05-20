@@ -3,7 +3,9 @@ header:
   title: "My Score"
   composer: "My Name"
 paper:
-  page_size: "letter"
+  paper-size: "letter"
+  top-margin: 0.7\cm
+  ragged-last-bottom: false
 setup:
   key: c \major
   time: 4/4
