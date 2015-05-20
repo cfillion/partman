@@ -8,16 +8,17 @@ using namespace std;
 
 typedef stringstream sstream;
 
+const string NL = "\n";
 const string SPACE = "\x20";
 const string LEVEL = SPACE+SPACE;
 
-std::ostream &operator<<(ostream &stream, const TokenPtr token)
+std::ostream &operator<<(ostream &stream, const TokenPtr<> token)
 {
   stream << token->code();
   return stream;
 }
 
-Token &operator<<(Token &parent, TokenPtr child)
+Token &operator<<(Token &parent, TokenPtr<> child)
 {
   parent.m_children.push_back(child);
   return parent;
@@ -28,10 +29,10 @@ string Token::code() const
   sstream ss;
 
   for(auto it = children().begin(); it != children().end(); it++) {
-    ss << *it << endl;
+    ss << *it << NL;
 
     if(it + 1 != children().end())
-      ss << endl;
+      ss << NL;
   }
 
   return ss.str();
@@ -42,7 +43,7 @@ string Command::code() const
   sstream ss;
   ss << "\\" << m_name;
 
-  for(const TokenPtr child : children())
+  for(const TokenPtr<> child : children())
     ss << SPACE << child;
 
   return ss.str();
@@ -61,10 +62,10 @@ string Block::code() const
     break;
   }
 
-  ss << endl;
+  ss << NL;
 
-  for(const TokenPtr child : children())
-    ss << LEVEL << replace_all_copy(child->code(), "\n", "\n" + LEVEL) << endl;
+  for(const TokenPtr<> child : children())
+    ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
 
   switch(m_type) {
   case BRACE:

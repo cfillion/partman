@@ -13,20 +13,25 @@ bool process(const string &file)
 {
   cerr << format("Pre-Processing %s...") % file << endl;
 
-  YAML::Node root;
+  Document doc;
 
   try {
-    if(file == "-")
-      root = YAML::Load(cin);
-    else
-      root = YAML::LoadFile(file);
+    vector<YAML::Node> yaml;
 
-    cout << Generators::from_yaml(root);
+    if(file == "-")
+      yaml = YAML::LoadAll(cin);
+    else
+      yaml = YAML::LoadAllFromFile(file);
+
+    for(YAML::Node &root : yaml)
+      doc.read_yaml(root);
   }
   catch(std::exception &err) {
     cerr << format("%s: %s") % file % err.what() << endl;
     return false;
   }
+
+  cout << doc.token();
 
   return true;
 }

@@ -6,25 +6,27 @@
 #include <vector>
 
 class Token;
-typedef std::shared_ptr<Token> TokenPtr;
+
+template <class T = Token>
+using TokenPtr = std::shared_ptr<T>;
 
 class Token
 {
-  // friend std::ostream &operator<<(std::ostream &, const TokenPtr);
-  friend Token &operator<<(Token &, TokenPtr);
+  // friend std::ostream &operator<<(std::ostream &, const TokenPtr<>);
+  friend Token &operator<<(Token &, TokenPtr<>);
 
 public:
   virtual std::string code() const;
 
 protected:
-  const std::vector<TokenPtr> &children() const { return m_children; }
+  const std::vector<TokenPtr<> > &children() const { return m_children; }
 
 private:
-  std::vector<TokenPtr> m_children;
+  std::vector<TokenPtr<> > m_children;
 };
 
-std::ostream &operator<<(std::ostream &, const TokenPtr);
-Token &operator<<(Token &, TokenPtr);
+std::ostream &operator<<(std::ostream &, const TokenPtr<>);
+Token &operator<<(Token &, TokenPtr<>);
 
 class Command : public Token
 {
@@ -52,14 +54,14 @@ private:
 class Variable : public Token
 {
 public:
-  Variable(const std::string &name, const TokenPtr value)
+  Variable(const std::string &name, const TokenPtr<> value)
     : m_name(name), m_value(value) {}
 
   virtual std::string code() const override;
 
 private:
   std::string m_name;
-  TokenPtr m_value;
+  TokenPtr<> m_value;
 };
 
 class Boolean : public Token
@@ -77,6 +79,11 @@ class String : public Token
 {
 public:
   String(const std::string value) : m_value(value) {}
+
+  const std::string &get() const { return m_value; }
+  void set(const std::string &val) { m_value = val; }
+
+  String &operator=(const std::string &val) { set(val); return *this; }
 
   virtual std::string code() const override;
 
