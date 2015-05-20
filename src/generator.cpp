@@ -53,6 +53,10 @@ TokenPtr Generator::from_yaml(const YAML::Node &root)
 
 TokenPtr Generator::make_header(const YAML::Node &node)
 {
+  auto block = make_shared<Block>(Block::BRACE);
+
   auto cmd = make_shared<Command>("header");
+  *cmd << block;
+
   return cmd;
 }

@@ -4,6 +4,8 @@
 
 using namespace std;
 
+typedef stringstream sstream;
+
 const string SPACE = "\x20";
 
 std::ostream &operator<<(ostream &stream, const TokenPtr token)
@@ -20,18 +22,52 @@ Token &operator<<(Token &parent, TokenPtr child)
 
 string Token::code() const
 {
-  stringstream stream;
+  sstream ss;
 
-  for(const TokenPtr child : children())
-    stream << child << endl;
+  for(auto it = children().begin(); it != children().end(); it++) {
+    ss << *it << endl;
 
-  return stream.str();
+    if(it + 1 != children().end())
+      ss << endl;
+  }
+
+  return ss.str();
 }
 
 string Command::code() const
 {
-  stringstream stream;
-  stream << "\\" << m_name << SPACE;
+  sstream ss;
+  ss << "\\" << m_name;
 
-  return stream.str();
+  for(const TokenPtr child : children())
+    ss << SPACE << child;
+
+  return ss.str();
+}
+
+string Block::code() const
+{
+  sstream ss;
+
+  switch(m_type) {
+  case BRACE:
+    ss << "{";
+    break;
+  case BRACKET:
+    ss << "<<";
+    break;
+  }
+
+  ss << endl;
+
+  switch(m_type) {
+  case BRACE:
+    ss << "}";
+    break;
+  case BRACKET:
+    ss << ">>";
+    break;
+  }
+
+  return ss.str();
 }

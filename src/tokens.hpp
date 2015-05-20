@@ -29,13 +29,26 @@ Token &operator<<(Token &, TokenPtr);
 class Command : public Token
 {
 public:
-  Command(std::string name) : m_name(name) {}
+  Command(const std::string &name) : m_name(name) {}
 
 protected:
   virtual std::string code() const override;
 
 private:
   std::string m_name;
+};
+
+class Block : public Token
+{
+public:
+  enum BraceType { BRACE, BRACKET };
+  Block(const BraceType type) : m_type(type) {}
+
+protected:
+  virtual std::string code() const override;
+
+private:
+  BraceType m_type;
 };
 
 #endif
