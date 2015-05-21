@@ -69,7 +69,10 @@ string Generator::id(const std::string &name) const
 
 Header::Header()
 {
+  m_tagline = make_shared<Variable>("tagline", make_shared<Boolean>(false));
+
   m_block = make_shared<Block>(Block::BRACE);
+  *m_block << m_tagline;
 
   m_token = make_shared<Command>("header");
   *m_token << m_block;
@@ -84,7 +87,10 @@ void Header::read_yaml(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    *m_block << make_variable(key, node);
+    if(key == "tagline")
+      *m_tagline = make_value(node);
+    else
+      *m_block << make_variable(key, node);
   }
 
   if(!root["tagline"])
@@ -180,7 +186,6 @@ const map<string, DocumentKey> DOCUMENT_KEYS = {
   {"score", SCORE},
 };
 
-#include <iostream>
 Document::Document()
 {
   m_token = make_shared<Token>();

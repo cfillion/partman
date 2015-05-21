@@ -57,6 +57,11 @@ public:
 
   virtual std::string code() const override;
 
+  const TokenPtr<> &get() const { return m_value; }
+  void set(const TokenPtr<> val) { m_value = val; }
+
+  Variable &operator=(const TokenPtr<> &val) { set(val); return *this; }
+
 private:
   std::string m_name;
   TokenPtr<> m_value;

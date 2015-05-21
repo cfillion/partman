@@ -39,6 +39,7 @@ public:
 
 private:
   TokenPtr<Block> m_block;
+  TokenPtr<Variable> m_tagline;
 };
 
 class Paper : public Generator
