@@ -9,23 +9,10 @@
 using namespace std;
 using format = boost::format;
 
-enum KeyType { VERSION, HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
-
 const string LILY_VERSION = "2.18.2";
-
-const map<string, KeyType> KEY_TYPES = {
-  {"version", VERSION},
-  {"header", HEADER},
-  {"paper", PAPER},
-  {"setup", SETUP},
-  {"parts", PARTS},
-  {"book", BOOK},
-  {"score", SCORE},
-};
 
 const string TRUE_STR = "true";
 const string FALSE_STR = "false";
-const string PAPER_SIZE = "paper-size";
 
 const int ID_LENGTH = 8;
 
@@ -104,6 +91,8 @@ void Header::read_yaml(const YAML::Node &root)
     *m_block << make_shared<Variable>("tagline", make_shared<Boolean>(false));
 }
 
+const string PAPER_SIZE = "paper-size";
+
 Paper::Paper()
 {
   m_paper_size = make_shared<String>("letter");
@@ -131,15 +120,49 @@ void Paper::read_yaml(const YAML::Node &root)
   }
 }
 
+enum SetupKey { KEY, TIME, TEMPO };
+
+const map<string, SetupKey> SETUP_KEYS = {
+  {"key", KEY},
+  {"time", TIME},
+  {"tempo", TEMPO},
+};
+
 Setup::Setup()
 {
   m_block = make_shared<Block>(Block::BRACE);
+  *m_block << make_shared<Command>("compressFullBarRests");
+
   m_token = make_shared<Variable>(id("setup"), m_block);
 }
 
 void Setup::read_yaml(const YAML::Node &root)
 {
+  for(auto it = root.begin(); it != root.end(); it++) {
+    const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
+
+    if(!SETUP_KEYS.count(key))
+      throw Error(format("invalid key '%s'") % key);
+
+    auto command = make_shared<Command>(key);
+    *command << make_shared<Literal>(node.as<string>());
+
+    *m_block << command;
+  }
 }
+
+enum DocumentKey { VERSION, HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
+
+const map<string, DocumentKey> DOCUMENT_KEYS = {
+  {"version", VERSION},
+  {"header", HEADER},
+  {"paper", PAPER},
+  {"setup", SETUP},
+  {"parts", PARTS},
+  {"book", BOOK},
+  {"score", SCORE},
+};
 
 Document::Document()
 {
@@ -166,11 +189,10 @@ void Document::read_yaml(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
     
-    if(!KEY_TYPES.count(key)) {
+    if(!DOCUMENT_KEYS.count(key))
       throw Error(format("invalid key '%s'") % key);
-    }
 
-    const KeyType type = KEY_TYPES.at(key);
+    const DocumentKey type = DOCUMENT_KEYS.at(key);
 
     switch(type) {
     case VERSION:
@@ -183,6 +205,7 @@ void Document::read_yaml(const YAML::Node &root)
       m_paper.read_yaml(node);
       break;
     case SETUP:
+      m_setup.read_yaml(node);
       break;
     case PARTS:
       break;
