@@ -69,12 +69,18 @@ string Block::code() const
     break;
   }
 
-  if(children().size() > 0)
-    ss << NL;
+  bool first_nl = false;
 
   for(const TokenPtr<> child : children()) {
-    if(!child->empty())
-      ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
+    if(child->empty())
+      continue;
+
+    if(!first_nl) {
+      ss << NL;
+      first_nl = true;
+    }
+
+    ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
   }
 
   switch(m_type) {

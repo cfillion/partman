@@ -196,10 +196,10 @@ Part::Part(const std::string &name)
 
   m_staff_block = make_shared<Block>(Block::BRACKET);
 
-  auto staff = make_shared<Command>("new");
-  *staff << m_type;
-  *staff << with;
-  *staff << m_staff_block;
+  m_staff = make_shared<Command>("new");
+  *m_staff << m_type;
+  *m_staff << with;
+  *m_staff << m_staff_block;
 
   auto include = make_shared<Command>("include");
   *include << make_shared<String>("parts/" + name + ".ily");
@@ -208,7 +208,7 @@ Part::Part(const std::string &name)
   *m_music_block << make_shared<Command>(id("setup"));
   *m_music_block << include;
 
-  m_token = make_shared<Variable>(m_id, staff);
+  m_token = make_shared<Variable>(m_id, m_staff);
 }
 
 void Part::read_yaml(const YAML::Node &root)
@@ -240,6 +240,7 @@ void Part::read_yaml(const YAML::Node &root)
         *m_instrument = node.as<string>();
         break;
       case P_PARTS:
+        add_sub_parts_from_yaml(node);
         break;
     }
   }
@@ -262,6 +263,16 @@ void Part::set_names_from_yaml(const YAML::Node &node)
   }
   else
     *m_long_name = node.as<string>();
+}
+
+void Part::add_sub_parts_from_yaml(const YAML::Node &root)
+{
+  for(auto it = root.begin(); it != root.end(); it++) {
+    const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
+
+    *m_staff_block << Part::from_yaml(key, node).staff();
+  }
 }
 
 enum DocumentKey { D_VERSION, D_HEADER, D_PAPER, D_SETUP,
