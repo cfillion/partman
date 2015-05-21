@@ -16,6 +16,7 @@ class Token
 
 public:
   virtual std::string code() const;
+  virtual bool empty() const { return false; }
 
 protected:
   const std::vector<TokenPtr<> > &children() const { return m_children; }
@@ -56,6 +57,7 @@ public:
     : m_name(name), m_value(value) {}
 
   virtual std::string code() const override;
+  virtual bool empty() const override { return m_value->empty(); }
 
   const TokenPtr<> &get() const { return m_value; }
   void set(const TokenPtr<> val) { m_value = val; }
@@ -81,7 +83,9 @@ class String : public Token
 {
 public:
   String(const std::string value = "") : m_value(value) {}
+
   virtual std::string code() const override;
+  virtual bool empty() const override { return m_value.empty(); }
 
   const std::string &get() const { return m_value; }
   void set(const std::string &val) { m_value = val; }

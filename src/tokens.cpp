@@ -31,6 +31,9 @@ string Token::code() const
   sstream ss;
 
   for(auto it = children().begin(); it != children().end(); it++) {
+    if((*it)->empty())
+      continue;
+
     ss << *it << NL;
 
     if(it + 1 != children().end())
@@ -45,8 +48,10 @@ string Command::code() const
   sstream ss;
   ss << "\\" << m_name;
 
-  for(const TokenPtr<> child : children())
-    ss << SP << child;
+  for(const TokenPtr<> child : children()) {
+    if(!child->empty())
+      ss << SP << child;
+  }
 
   return ss.str();
 }
@@ -67,8 +72,10 @@ string Block::code() const
   if(children().size() > 0)
     ss << NL;
 
-  for(const TokenPtr<> child : children())
-    ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
+  for(const TokenPtr<> child : children()) {
+    if(!child->empty())
+      ss << LEVEL << replace_all_copy(child->code(), NL, NL + LEVEL) << NL;
+  }
 
   switch(m_type) {
   case BRACE:
