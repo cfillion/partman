@@ -80,7 +80,7 @@ private:
 class String : public Token
 {
 public:
-  String(const std::string value) : m_value(value) {}
+  String(const std::string value = "") : m_value(value) {}
   virtual std::string code() const override;
 
   const std::string &get() const { return m_value; }

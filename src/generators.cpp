@@ -126,12 +126,12 @@ void Paper::read_yaml(const YAML::Node &root)
   }
 }
 
-enum SetupKey { KEY, TIME, TEMPO };
+enum SetupKey { S_KEY, S_TIME, S_TEMPO };
 
 const map<string, SetupKey> SETUP_KEYS = {
-  {"key", KEY},
-  {"time", TIME},
-  {"tempo", TEMPO},
+  {"key", S_KEY},
+  {"time", S_TIME},
+  {"tempo", S_TEMPO},
 };
 
 Setup::Setup()
@@ -158,32 +158,106 @@ void Setup::read_yaml(const YAML::Node &root)
   }
 }
 
+enum PartKey { P_NAME, P_TYPE, P_RELATIVE, P_INSTRUMENT, P_PARTS };
+
+const map<string, PartKey> PART_KEYS = {
+  {"name", P_NAME},
+  {"type", P_TYPE},
+  {"relative", P_RELATIVE},
+  {"instrument", P_INSTRUMENT},
+  {"parts", P_PARTS},
+};
+
 Part::Part(const std::string &name)
+  : m_name(name)
 {
   m_id = id(name);
 
-  m_block = make_shared<Block>(Block::BRACE);
+  m_type = make_shared<Literal>("Staff");
 
-  auto command = make_shared<Command>("relative");
-  *command << m_block;
+  m_long_name = make_shared<String>("");
+  m_short_name = make_shared<String>();
+  m_instrument = make_shared<String>();
 
-  m_token = make_shared<Variable>(m_id, command);
+  m_with_block = make_shared<Block>(Block::BRACE);
+  *m_with_block << make_shared<Variable>("instrumentName", m_long_name);
+  *m_with_block << make_shared<Variable>("shortInstrumentName", m_short_name);
+  *m_with_block << make_shared<Variable>("midiInstrument", m_instrument);
+
+  auto with = make_shared<Command>("with");
+  *with << m_with_block;
+
+  m_staff_block = make_shared<Block>(Block::BRACKET);
+
+  auto staff = make_shared<Command>("new");
+  *staff << m_type;
+  *staff << with;
+  *staff << m_staff_block;
+
+  m_music_block = make_shared<Block>(Block::BRACE);
+
+  m_token = make_shared<Variable>(m_id, staff);
 }
 
 void Part::read_yaml(const YAML::Node &root)
 {
+  for(auto it = root.begin(); it != root.end(); it++) {
+    const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
+
+    if(!PART_KEYS.count(key))
+      throw Error(format("invalid key '%s'") % key);
+
+    const PartKey type = PART_KEYS.at(key);
+
+    switch(type) {
+      case P_NAME:
+        set_names_from_yaml(node);
+        break;
+      case P_TYPE:
+        *m_type = node.as<string>();
+        break;
+      case P_RELATIVE:
+        break;
+      case P_INSTRUMENT:
+        *m_instrument = node.as<string>();
+        break;
+      case P_PARTS:
+        break;
+    }
+  }
 }
 
-enum DocumentKey { VERSION, HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
+void Part::set_names_from_yaml(const YAML::Node &node)
+{
+  if(node.IsSequence()) {
+    vector<string> names = node.as<vector<string> >();
+
+    if(names.size() > 2) {
+      throw Error(format("expected at most two names, but got %d instead")
+        % names.size());
+    }
+
+    names.resize(2);
+
+    *m_long_name = names[0];
+    *m_short_name = names[1];
+  }
+  else
+    *m_long_name = node.as<string>();
+}
+
+enum DocumentKey { D_VERSION, D_HEADER, D_PAPER, D_SETUP,
+  D_PARTS, D_BOOK, D_SCORE };
 
 const map<string, DocumentKey> DOCUMENT_KEYS = {
-  {"version", VERSION},
-  {"header", HEADER},
-  {"paper", PAPER},
-  {"setup", SETUP},
-  {"parts", PARTS},
-  {"book", BOOK},
-  {"score", SCORE},
+  {"version", D_VERSION},
+  {"header", D_HEADER},
+  {"paper", D_PAPER},
+  {"setup", D_SETUP},
+  {"parts", D_PARTS},
+  {"book", D_BOOK},
+  {"score", D_SCORE},
 };
 
 Document::Document()
@@ -224,24 +298,24 @@ void Document::read_yaml(const YAML::Node &root)
     const DocumentKey type = DOCUMENT_KEYS.at(key);
 
     switch(type) {
-    case VERSION:
+    case D_VERSION:
       *m_version = node.as<string>();
       break;
-    case HEADER:
+    case D_HEADER:
       m_header.read_yaml(node);
       break;
-    case PAPER:
+    case D_PAPER:
       m_paper.read_yaml(node);
       break;
-    case SETUP:
+    case D_SETUP:
       m_setup.read_yaml(node);
       break;
-    case PARTS:
+    case D_PARTS:
       add_parts_from_yaml(node);
       break;
-    case BOOK:
+    case D_BOOK:
       break;
-    case SCORE:
+    case D_SCORE:
       break;
     }
   }
@@ -254,6 +328,7 @@ void Document::add_parts_from_yaml(const YAML::Node &root)
     const YAML::Node node = it->second;
 
     Part part(key);
+    part.read_yaml(node);
     *m_token << part.token();
 
     m_parts.insert({key, part});

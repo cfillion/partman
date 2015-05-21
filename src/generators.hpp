@@ -69,11 +69,21 @@ public:
   Part(const std::string &name);
   void read_yaml(const YAML::Node &) override;
 
+  const std::string &name() const { return m_name; }
   const std::string &identifier() const { return m_id; }
 
 private:
-  TokenPtr<Block> m_block;
+  void set_names_from_yaml(const YAML::Node &);
 
+  TokenPtr<Block> m_staff_block;
+  TokenPtr<Block> m_with_block;
+  TokenPtr<Block> m_music_block;
+  TokenPtr<Literal> m_type;
+  TokenPtr<String> m_long_name;
+  TokenPtr<String> m_short_name;
+  TokenPtr<String> m_instrument;
+
+  std::string m_name;
   std::string m_id;
 };
 
