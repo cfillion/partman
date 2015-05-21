@@ -27,6 +27,7 @@ protected:
   TokenPtr<> make_value(const YAML::Node &) const;
   TokenPtr<> make_score(const YAML::Node &) const;
   TokenPtr<> make_part_ref(const YAML::Node &) const;
+  TokenPtr<> make_book(const YAML::Node &) const;
 
   std::string id(const std::string &name) const;
 

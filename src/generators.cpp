@@ -83,6 +83,22 @@ TokenPtr<> Generator::make_part_ref(const YAML::Node &node) const
     return make_shared<Command>(id(node.as<string>()));
 }
 
+TokenPtr<> Generator::make_book(const YAML::Node &node) const
+{
+  if(!node.IsSequence())
+    throw Error("a book must be an array of scores");
+
+  auto block = make_shared<Block>(Block::BRACE);
+
+  for(auto it = node.begin(); it != node.end(); it++)
+    *block << make_score(*it);
+
+  auto book = make_shared<Command>("book");
+  *book << block;
+
+  return book;
+}
+
 string Generator::id(const std::string &name) const
 {
   if(s_identifiers.left.count(name))
@@ -379,6 +395,7 @@ void Document::read_yaml(const YAML::Node &root)
       add_parts_from_yaml(node);
       break;
     case D_BOOK:
+      *m_token << make_book(node);
       break;
     case D_SCORE:
       *m_token << make_score(node);

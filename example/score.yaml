@@ -36,3 +36,7 @@ score:
     - [bass, piano]
   layout: true
   midi: true
+---
+book:
+  - parts: [violin]
+  - parts: [[bass, piano]]
