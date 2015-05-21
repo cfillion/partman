@@ -152,6 +152,22 @@ void Setup::read_yaml(const YAML::Node &root)
   }
 }
 
+Part::Part(const std::string &name)
+{
+  m_id = id(name);
+
+  m_block = make_shared<Block>(Block::BRACE);
+
+  auto command = make_shared<Command>("relative");
+  *command << m_block;
+
+  m_token = make_shared<Variable>(m_id, command);
+}
+
+void Part::read_yaml(const YAML::Node &root)
+{
+}
+
 enum DocumentKey { VERSION, HEADER, PAPER, SETUP, PARTS, BOOK, SCORE };
 
 const map<string, DocumentKey> DOCUMENT_KEYS = {
@@ -164,6 +180,7 @@ const map<string, DocumentKey> DOCUMENT_KEYS = {
   {"score", SCORE},
 };
 
+#include <iostream>
 Document::Document()
 {
   m_token = make_shared<Token>();
@@ -215,11 +232,25 @@ void Document::read_yaml(const YAML::Node &root)
       m_setup.read_yaml(node);
       break;
     case PARTS:
+      add_parts_from_yaml(node);
       break;
     case BOOK:
       break;
     case SCORE:
       break;
     }
+  }
+}
+
+void Document::add_parts_from_yaml(const YAML::Node &root)
+{
+  for(auto it = root.begin(); it != root.end(); it++) {
+    const string key = it->first.as<string>();
+    const YAML::Node node = it->second;
+
+    Part part(key);
+    *m_token << part.token();
+
+    m_parts.insert({key, part});
   }
 }

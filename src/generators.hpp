@@ -62,6 +62,20 @@ private:
   TokenPtr<Block> m_block;
 };
 
+class Part : public Generator
+{
+public:
+  Part(const std::string &name);
+  void read_yaml(const YAML::Node &) override;
+
+  const std::string &identifier() const { return m_id; }
+
+private:
+  TokenPtr<Block> m_block;
+
+  std::string m_id;
+};
+
 class Document : public Generator
 {
 public:
@@ -69,10 +83,13 @@ public:
   void read_yaml(const YAML::Node &) override;
 
 private:
+  void add_parts_from_yaml(const YAML::Node &);
+
   TokenPtr<String> m_version;
   Header m_header;
   Paper m_paper;
   Setup m_setup;
+  std::map<std::string, Part> m_parts;
 };
 
 #endif

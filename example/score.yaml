@@ -11,9 +11,25 @@ setup:
   time: 4/4
   tempo: 4 = 120
 parts:
-  violin: ["Violin", "Vln.", c'', "violin"]
-  bass:  ["Bass", "Bass", c, "electric bass (finger)"]
-  piano: ["Piano", "Pno.", [c'', c']]
+  violin:
+    name: ["Violin", "Vln."]
+    relative: c''
+    instrument: "violin"
+  bass:
+    name: ["Bass", "Bass"]
+    relative: c,
+    instrument: "electric bass (finger)"
+  piano:
+    name: ["Piano", "Pno."]
+    type: PianoStaff
+    instrument: "acoustic grand"
+    parts:
+      upper:
+        relative: c''
+      lower:
+        relative: c,
+  violin_two:
+    name: ["Violin", "Vln."]
 score:
   parts:
     - violin,
