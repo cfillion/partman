@@ -32,7 +32,7 @@ parts:
     name: ["Violin", "Vln."]
 score:
   parts:
-    - violin,
+    - violin
     - [bass, piano]
   layout: true
   midi: true

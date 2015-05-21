@@ -46,6 +46,43 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
   return make_shared<String>(value);
 }
 
+TokenPtr<> Generator::make_score(const YAML::Node &root) const
+{
+  auto block = make_shared<Block>(Block::BRACKET);
+
+  if(!root["parts"].IsSequence())
+    throw Error("score.parts must be an array");
+
+  for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
+    attach_parts(block, *it);
+
+  auto parent_block = make_shared<Block>(Block::BRACE);
+  *parent_block << block;
+
+  auto score = make_shared<Command>("score");
+  *score << parent_block;
+
+  return score;
+}
+
+void Generator::attach_parts(TokenPtr<> score, const YAML::Node &node) const
+{
+  if(node.IsSequence()) {
+    auto block = make_shared<Block>(Block::BRACKET);
+
+    for(auto it = node.begin(); it != node.end(); it++)
+      attach_parts(block, *it);
+
+    auto group = make_shared<Command>("new");
+    *group << make_shared<Literal>("StaffGroup");
+    *group << block;
+
+    *score << group;
+  }
+  else
+    *score << make_shared<Command>(id(node.as<string>()));
+}
+
 string Generator::id(const std::string &name) const
 {
   if(s_identifiers.left.count(name))
@@ -344,6 +381,7 @@ void Document::read_yaml(const YAML::Node &root)
     case D_BOOK:
       break;
     case D_SCORE:
+      *m_token << make_score(node);
       break;
     }
   }

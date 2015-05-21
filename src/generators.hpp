@@ -21,11 +21,14 @@ public:
   TokenPtr<> token() const { return m_token; }
 
 protected:
+  static boost::bimap<std::string, std::string> s_identifiers;
+
   TokenPtr<> make_variable(const std::string &, const YAML::Node &) const;
   TokenPtr<> make_value(const YAML::Node &) const;
-  std::string id(const std::string &name) const;
+  TokenPtr<> make_score(const YAML::Node &) const;
+  void attach_parts(TokenPtr<> score, const YAML::Node &) const;
 
-  static boost::bimap<std::string, std::string> s_identifiers;
+  std::string id(const std::string &name) const;
 
   TokenPtr<> m_token;
 };
@@ -99,12 +102,12 @@ public:
 
 private:
   void add_parts_from_yaml(const YAML::Node &);
+  TokenPtr<Command> make_score_from_yaml(const YAML::Node &) const;
 
   TokenPtr<String> m_version;
   Header m_header;
   Paper m_paper;
   Setup m_setup;
-  std::vector<Part> m_parts;
 };
 
 #endif
