@@ -30,6 +30,7 @@ parts:
         relative: c,
   violin_two:
     name: ["Violin", "Vln."]
+global-staff-size: 16
 score:
   parts:
     - violin

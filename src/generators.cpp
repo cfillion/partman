@@ -48,19 +48,19 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
 
 TokenPtr<> Generator::make_score(const YAML::Node &root) const
 {
-  auto block = make_shared<Block>(Block::BRACKET);
-
   if(!root["parts"].IsSequence())
     throw Error("score.parts must be an array");
 
-  for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
-    *block << make_part_ref(*it);
+  auto music_block = make_shared<Block>(Block::BRACKET);
 
-  auto parent_block = make_shared<Block>(Block::BRACE);
-  *parent_block << block;
+  for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
+    *music_block << make_part_ref(*it);
+
+  auto score_block = make_shared<Block>(Block::BRACE);
+  *score_block << music_block;
 
   auto score = make_shared<Command>("score");
-  *score << parent_block;
+  *score << score_block;
 
   return score;
 }
@@ -329,7 +329,7 @@ void Part::add_sub_parts_from_yaml(const YAML::Node &root)
 }
 
 enum DocumentKey { D_VERSION, D_HEADER, D_PAPER, D_SETUP,
-  D_PARTS, D_BOOK, D_SCORE };
+  D_PARTS, D_BOOK, D_SCORE , D_GSTAFF_SIZE };
 
 const map<string, DocumentKey> DOCUMENT_KEYS = {
   {"version", D_VERSION},
@@ -339,6 +339,7 @@ const map<string, DocumentKey> DOCUMENT_KEYS = {
   {"parts", D_PARTS},
   {"book", D_BOOK},
   {"score", D_SCORE},
+  {"global-staff-size", D_GSTAFF_SIZE},
 };
 
 Document::Document()
@@ -399,6 +400,11 @@ void Document::read_yaml(const YAML::Node &root)
       break;
     case D_SCORE:
       *m_token << make_score(node);
+      break;
+    case D_GSTAFF_SIZE:
+      auto func = make_shared<Function>("set-global-staff-size");
+      *func << make_value(node);
+      *m_token << func;
       break;
     }
   }
