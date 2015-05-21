@@ -201,7 +201,12 @@ Part::Part(const std::string &name)
   *staff << with;
   *staff << m_staff_block;
 
+  auto include = make_shared<Command>("include");
+  *include << make_shared<String>("parts/" + name + ".ily");
+
   m_music_block = make_shared<Block>(Block::BRACE);
+  *m_music_block << make_shared<Command>(id("setup"));
+  *m_music_block << include;
 
   m_token = make_shared<Variable>(m_id, staff);
 }
@@ -224,8 +229,13 @@ void Part::read_yaml(const YAML::Node &root)
       case P_TYPE:
         *m_type = node.as<string>();
         break;
-      case P_RELATIVE:
+      case P_RELATIVE: {
+        auto relative = make_shared<Command>("relative");
+        *relative << make_shared<Literal>(node.as<string>());
+        *relative << m_music_block;
+        *m_staff_block << relative;
         break;
+      }
       case P_INSTRUMENT:
         *m_instrument = node.as<string>();
         break;
