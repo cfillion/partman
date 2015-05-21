@@ -54,7 +54,7 @@ TokenPtr<> Generator::make_score(const YAML::Node &root) const
     throw Error("score.parts must be an array");
 
   for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
-    attach_parts(block, *it);
+    *block << make_part_ref(*it);
 
   auto parent_block = make_shared<Block>(Block::BRACE);
   *parent_block << block;
@@ -65,22 +65,22 @@ TokenPtr<> Generator::make_score(const YAML::Node &root) const
   return score;
 }
 
-void Generator::attach_parts(TokenPtr<> score, const YAML::Node &node) const
+TokenPtr<> Generator::make_part_ref(const YAML::Node &node) const
 {
   if(node.IsSequence()) {
     auto block = make_shared<Block>(Block::BRACKET);
 
     for(auto it = node.begin(); it != node.end(); it++)
-      attach_parts(block, *it);
+      *block << make_part_ref(*it);
 
     auto group = make_shared<Command>("new");
     *group << make_shared<Literal>("StaffGroup");
     *group << block;
 
-    *score << group;
+    return group;
   }
   else
-    *score << make_shared<Command>(id(node.as<string>()));
+    return make_shared<Command>(id(node.as<string>()));
 }
 
 string Generator::id(const std::string &name) const
@@ -308,7 +308,7 @@ void Part::add_sub_parts_from_yaml(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    *m_staff_block << Part::from_yaml(key, node).staff();
+    *m_staff_block << Part::from_yaml(m_name + "_" + key, node).staff();
   }
 }
 
