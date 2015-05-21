@@ -2,7 +2,6 @@
 #define GENERATORS_HPP
 
 #include <boost/bimap.hpp>
-#include <map>
 #include <string>
 
 #include "tokens.hpp"
@@ -66,6 +65,8 @@ private:
 class Part : public Generator
 {
 public:
+  static Part from_yaml(const std::string &, const YAML::Node &);
+
   Part(const std::string &name);
   void read_yaml(const YAML::Node &) override;
 
@@ -100,7 +101,7 @@ private:
   Header m_header;
   Paper m_paper;
   Setup m_setup;
-  std::map<std::string, Part> m_parts;
+  std::vector<Part> m_parts;
 };
 
 #endif

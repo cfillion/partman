@@ -168,6 +168,13 @@ const map<string, PartKey> PART_KEYS = {
   {"parts", P_PARTS},
 };
 
+Part Part::from_yaml(const std::string &name, const YAML::Node &node)
+{
+  Part part(name);
+  part.read_yaml(node);
+  return part;
+}
+
 Part::Part(const std::string &name)
   : m_name(name)
 {
@@ -327,10 +334,6 @@ void Document::add_parts_from_yaml(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    Part part(key);
-    part.read_yaml(node);
-    *m_token << part.token();
-
-    m_parts.insert({key, part});
+    *m_token << Part::from_yaml(key, node).token();
   }
 }
