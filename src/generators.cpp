@@ -314,8 +314,11 @@ void Part::set_names_from_yaml(const YAML::Node &node)
     *m_long_name = names[0];
     *m_short_name = names[1];
   }
-  else
-    *m_long_name = node.as<string>();
+  else {
+    const string name = node.as<string>();
+    *m_long_name = name;
+    *m_short_name = name;
+  }
 }
 
 void Part::add_sub_parts_from_yaml(const YAML::Node &root)
