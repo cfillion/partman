@@ -12,6 +12,7 @@ const string NL = "\n";
 const string SP = "\x20";
 
 const string LEVEL = SP+SP;
+const string COMMENT = "% ";
 
 std::ostream &operator<<(ostream &stream, const TokenPtr<> token)
 {
@@ -111,4 +112,13 @@ string Function::code() const
 
   ss << ")";
   return ss.str();
+}
+
+string Comment::code() const
+{
+  const string decoration =
+    m_decorate ? string(COMMENT.rbegin(), COMMENT.rend()) : "";
+
+  return COMMENT + replace_all_copy(m_text, NL, decoration + NL + COMMENT)
+    + decoration;
 }

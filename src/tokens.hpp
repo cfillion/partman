@@ -107,4 +107,17 @@ private:
   std::string m_name;
 };
 
+class Comment : public Token
+{
+public:
+  Comment(const std::string text, const bool decorate = false)
+    : m_text(text), m_decorate(decorate) {}
+
+  virtual std::string code() const override;
+
+private:
+  std::string m_text;
+  bool m_decorate;
+};
+
 #endif
