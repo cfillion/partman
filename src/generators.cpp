@@ -12,13 +12,23 @@ using format = boost::format;
 
 const string LILY_VERSION = "2.18.2";
 
-const string TRUE_STR = "true";
-const string FALSE_STR = "false";
+enum DocumentKey { D_VERSION, D_HEADER, D_PAPER, D_SETUP,
+  D_PARTS, D_BOOK, D_SCORE , D_GSTAFF_SIZE };
 
-const int ID_LENGTH = 8;
+const map<string, DocumentKey> DOCUMENT_KEYS = {
+  {"version", D_VERSION},
+  {"header", D_HEADER},
+  {"paper", D_PAPER},
+  {"setup", D_SETUP},
+  {"parts", D_PARTS},
+  {"book", D_BOOK},
+  {"score", D_SCORE},
+  {"global-staff-size", D_GSTAFF_SIZE},
+};
 
 const unordered_set<string> KEY_COMMANDS = { "key", "time", "tempo" };
 
+const int ID_LENGTH = 8;
 IdentifierMap Generator::s_identifiers;
 
 TokenPtr<> Generator::make_variable(const std::string &key,
@@ -167,7 +177,7 @@ void Part::read_yaml(const YAML::Node &root)
 
     switch(type) {
       case P_NAME:
-        set_names_from_yaml(node);
+        set_names(node);
         break;
       case P_TYPE:
         *m_type = node.as<string>();
@@ -183,13 +193,13 @@ void Part::read_yaml(const YAML::Node &root)
         *m_instrument = node.as<string>();
         break;
       case P_PARTS:
-        add_sub_parts_from_yaml(node);
+        add_sub_parts(node);
         break;
     }
   }
 }
 
-void Part::set_names_from_yaml(const YAML::Node &node)
+void Part::set_names(const YAML::Node &node)
 {
   if(node.IsSequence()) {
     vector<string> names = node.as<vector<string> >();
@@ -211,7 +221,7 @@ void Part::set_names_from_yaml(const YAML::Node &node)
   }
 }
 
-void Part::add_sub_parts_from_yaml(const YAML::Node &root)
+void Part::add_sub_parts(const YAML::Node &root)
 {
   for(auto it = root.begin(); it != root.end(); it++) {
     const string key = it->first.as<string>();
@@ -220,20 +230,6 @@ void Part::add_sub_parts_from_yaml(const YAML::Node &root)
     *m_staff_block << Part::from_yaml(m_name + "_" + key, node).staff();
   }
 }
-
-enum DocumentKey { D_VERSION, D_HEADER, D_PAPER, D_SETUP,
-  D_PARTS, D_BOOK, D_SCORE , D_GSTAFF_SIZE };
-
-const map<string, DocumentKey> DOCUMENT_KEYS = {
-  {"version", D_VERSION},
-  {"header", D_HEADER},
-  {"paper", D_PAPER},
-  {"setup", D_SETUP},
-  {"parts", D_PARTS},
-  {"book", D_BOOK},
-  {"score", D_SCORE},
-  {"global-staff-size", D_GSTAFF_SIZE},
-};
 
 Document::Document()
 {

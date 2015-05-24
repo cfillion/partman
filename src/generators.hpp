@@ -60,8 +60,8 @@ public:
   const TokenPtr<Command> staff() const { return m_staff; }
 
 private:
-  void set_names_from_yaml(const YAML::Node &);
-  void add_sub_parts_from_yaml(const YAML::Node &);
+  void set_names(const YAML::Node &);
+  void add_sub_parts(const YAML::Node &);
 
   TokenPtr<Command> m_staff;
   TokenPtr<Block> m_staff_block;
