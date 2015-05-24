@@ -11,5 +11,12 @@ ifeq (@(TUP_PLATFORM),macosx)
   LDFLAGS += -stdlib=libc++
 endif
 
-: foreach src/*.cpp |> $(CXX) $(CXXFLAGS) -c %f -o %o |> build/%B.o
-: build/*.o |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |> $(TARGET)
+!build = |> $(CXX) $(CXXFLAGS) -c %f -o %o |>
+!link  = |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |>
+
+: foreach src/*.cpp |> !build |> build/%B.o
+: src/main/main.cpp |> !build |> build/main/%B.o
+: build/*.o build/main/main.o |> !link |> $(TARGET)
+
+: foreach test/*.cpp |> !build |> build/test/%B.o
+: build/*.o build/test/*.o |> !link |> tests

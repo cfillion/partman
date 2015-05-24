@@ -16,6 +16,7 @@ class Token
   friend Token &operator<<(Token &, TokenPtr<>);
 
 public:
+  virtual ~Token(){}
   virtual std::string code() const;
   virtual bool empty() const { return false; }
 
