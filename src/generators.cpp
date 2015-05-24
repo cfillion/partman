@@ -121,47 +121,62 @@ const map<string, PartKey> PART_KEYS = {
   {"parts", P_PARTS},
 };
 
-Part Part::from_yaml(const std::string &name, const YAML::Node &node)
+Part Part::from_yaml(const std::string &name,
+  const YAML::Node &node, const int level)
 {
-  Part part(name);
+  Part part(name, level);
   part.read_yaml(node);
   return part;
 }
 
-Part::Part(const std::string &name)
-  : m_name(name)
+Part::Part(const std::string &name, const int level)
+  : m_level(level), m_name(name)
 {
   m_id = id(name);
 
   m_type = make_shared<Literal>("Staff");
+  m_staff = make_shared<Command>("new");
+  *m_staff << m_type;
 
+  prepare_with();
+
+  m_staff_block = make_shared<Block>(Block::BRACKET);
+  *m_staff << m_staff_block;
+
+  m_token = make_shared<Variable>(m_id, m_staff);
+
+  prepare_music();
+}
+
+void Part::prepare_with()
+{
   m_long_name = make_shared<String>("");
   m_short_name = make_shared<String>();
   m_instrument = make_shared<String>();
 
-  m_with_block = make_shared<Block>(Block::BRACE);
-  *m_with_block << make_shared<Variable>("instrumentName", m_long_name);
-  *m_with_block << make_shared<Variable>("shortInstrumentName", m_short_name);
-  *m_with_block << make_shared<Variable>("midiInstrument", m_instrument);
+  m_performer = make_shared<Command>(m_level == 0 ? "" : "remove");
+  *m_performer << make_shared<String>("Staff_performer");
+
+  auto block = make_shared<Block>(Block::BRACE);
+  *block << make_shared<Variable>("instrumentName", m_long_name);
+  *block << make_shared<Variable>("shortInstrumentName", m_short_name);
+  *block << make_shared<Variable>("midiInstrument", m_instrument);
+  *block << m_performer;
 
   auto with = make_shared<Command>("with");
-  *with << m_with_block;
+  *with << block;
 
-  m_staff_block = make_shared<Block>(Block::BRACKET);
-
-  m_staff = make_shared<Command>("new");
-  *m_staff << m_type;
   *m_staff << with;
-  *m_staff << m_staff_block;
+}
 
+void Part::prepare_music()
+{
   auto include = make_shared<Command>("include");
-  *include << make_shared<String>("parts/" + name + ".ily");
+  *include << make_shared<String>("parts/" + m_name + ".ily");
 
   m_music_block = make_shared<Block>(Block::BRACE);
   *m_music_block << make_shared<Command>(id("setup"));
   *m_music_block << include;
-
-  m_token = make_shared<Variable>(m_id, m_staff);
 }
 
 void Part::read_yaml(const YAML::Node &root)
@@ -191,6 +206,7 @@ void Part::read_yaml(const YAML::Node &root)
       }
       case P_INSTRUMENT:
         *m_instrument = node.as<string>();
+        *m_performer = "consists";
         break;
       case P_PARTS:
         add_sub_parts(node);
@@ -227,7 +243,8 @@ void Part::add_sub_parts(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    *m_staff_block << Part::from_yaml(m_name + "_" + key, node).staff();
+    const Part sub = Part::from_yaml(m_name + "_" + key, node, m_level + 1);
+    *m_staff_block << sub.staff();
   }
 }
 

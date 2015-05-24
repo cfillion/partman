@@ -50,9 +50,10 @@ private:
 class Part : public Generator
 {
 public:
-  static Part from_yaml(const std::string &, const YAML::Node &);
+  static Part from_yaml(const std::string &,
+    const YAML::Node &, const int level = 0);
 
-  Part(const std::string &name);
+  Part(const std::string &name, const int level = 0);
   void read_yaml(const YAML::Node &) override;
 
   const std::string &name() const { return m_name; }
@@ -60,18 +61,22 @@ public:
   const TokenPtr<Command> staff() const { return m_staff; }
 
 private:
+  void prepare_with();
+  void prepare_music();
+
   void set_names(const YAML::Node &);
   void add_sub_parts(const YAML::Node &);
 
   TokenPtr<Command> m_staff;
   TokenPtr<Block> m_staff_block;
-  TokenPtr<Block> m_with_block;
   TokenPtr<Block> m_music_block;
   TokenPtr<Literal> m_type;
   TokenPtr<String> m_long_name;
   TokenPtr<String> m_short_name;
   TokenPtr<String> m_instrument;
+  TokenPtr<Command> m_performer;
 
+  int m_level;
   std::string m_name;
   std::string m_id;
 };

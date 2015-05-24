@@ -32,7 +32,14 @@ class Command : public Token
 {
 public:
   Command(const std::string &name) : m_name(name) {}
+
   virtual std::string code() const override;
+  virtual bool empty() const override { return m_name.empty(); }
+
+  const std::string &get() const { return m_name; }
+  void set(const std::string &val) { m_name = val; }
+
+  Command &operator=(const std::string &val) { set(val); return *this; }
 
 private:
   std::string m_name;
