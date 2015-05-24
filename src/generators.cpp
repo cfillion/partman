@@ -121,16 +121,15 @@ const map<string, PartKey> PART_KEYS = {
   {"parts", P_PARTS},
 };
 
-Part Part::from_yaml(const std::string &name,
-  const YAML::Node &node, const int level)
+Part Part::from_yaml(const std::string &name, const YAML::Node &node)
 {
-  Part part(name, level);
+  Part part(name);
   part.read_yaml(node);
   return part;
 }
 
-Part::Part(const std::string &name, const int level)
-  : m_level(level), m_name(name)
+Part::Part(const std::string &name)
+  : m_name(name)
 {
   m_id = id(name);
 
@@ -154,7 +153,7 @@ void Part::prepare_with()
   m_short_name = make_shared<String>();
   m_instrument = make_shared<String>();
 
-  m_performer = make_shared<Command>(m_level == 0 ? "" : "remove");
+  m_performer = make_shared<Command>("remove");
   *m_performer << make_shared<String>("Staff_performer");
 
   auto block = make_shared<Block>(Block::BRACE);
@@ -243,7 +242,7 @@ void Part::add_sub_parts(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    const Part sub = Part::from_yaml(m_name + "_" + key, node, m_level + 1);
+    const Part sub = Part::from_yaml(m_name + "_" + key, node);
     *m_staff_block << sub.staff();
   }
 }
