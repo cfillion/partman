@@ -85,8 +85,10 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
   }
 
-  for(const string file : vm["input"].as<vector<string> >())
-    process(file);
+  bool all_ok = true;
 
-  return EXIT_SUCCESS;
+  for(const string file : vm["input"].as<vector<string> >())
+    all_ok = process(file) && all_ok;
+
+  return all_ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }
