@@ -1,6 +1,7 @@
 #ifndef TOKENS_HPP
 #define TOKENS_HPP
 
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
