@@ -2,6 +2,7 @@
 #define GENERATORS_HPP
 
 #include <boost/bimap.hpp>
+#include <boost/function.hpp>
 #include <string>
 
 #include "tokens.hpp"
@@ -25,45 +26,25 @@ protected:
 
   TokenPtr<> make_variable(const std::string &, const YAML::Node &) const;
   TokenPtr<> make_value(const YAML::Node &) const;
-  TokenPtr<> make_score(const YAML::Node &) const;
-  TokenPtr<> make_part_ref(const YAML::Node &) const;
-  TokenPtr<> make_book(const YAML::Node &) const;
 
   std::string id(const std::string &name) const;
 
   TokenPtr<> m_token;
 };
 
-class Header : public Generator
+class KeyValue : public Generator
 {
 public:
-  Header();
+  KeyValue();
   void read_yaml(const YAML::Node &) override;
 
-private:
-  TokenPtr<Block> m_block;
-  TokenPtr<Variable> m_tagline;
-};
+  typedef boost::function<bool(const std::string &,
+    const YAML::Node &)> SpecialHandler;
 
-class Paper : public Generator
-{
-public:
-  Paper();
-  void read_yaml(const YAML::Node &) override;
+  void add_handler(SpecialHandler h) { m_handlers.push_back(h); }
 
 private:
-  TokenPtr<Block> m_block;
-  TokenPtr<String> m_paper_size;
-};
-
-class Setup : public Generator
-{
-public:
-  Setup();
-  void read_yaml(const YAML::Node &) override;
-
-private:
-  TokenPtr<Block> m_block;
+  std::vector<SpecialHandler> m_handlers;
 };
 
 class Part : public Generator
@@ -102,13 +83,21 @@ public:
   void read_yaml(const YAML::Node &) override;
 
 private:
-  void add_parts_from_yaml(const YAML::Node &);
-  TokenPtr<Command> make_score_from_yaml(const YAML::Node &) const;
+  void prepare_header();
+  void prepare_paper();
+  void prepare_setup();
+
+  void add_parts(const YAML::Node &);
+
+  TokenPtr<> make_score(const YAML::Node &) const;
+  TokenPtr<> make_part_ref(const YAML::Node &) const;
+  TokenPtr<> make_book(const YAML::Node &) const;
 
   TokenPtr<String> m_version;
-  Header m_header;
-  Paper m_paper;
-  Setup m_setup;
+
+  KeyValue m_header;
+  KeyValue m_paper;
+  KeyValue m_setup;
 };
 
 #endif

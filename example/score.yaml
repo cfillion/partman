@@ -35,8 +35,11 @@ score:
   parts:
     - violin
     - [bass, piano]
-  layout: true
-  midi: true
+  layout:
+    indent: 1\cm
+    short-indent: 3\cm
+  midi:
+    tempo: 4 = 60
 ---
 book:
   - parts: [violin]

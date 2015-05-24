@@ -2,6 +2,7 @@
 
 #include <boost/format.hpp>
 #include <random>
+#include <unordered_set>
 #include <yaml-cpp/yaml.h>
 
 #include "error.hpp"
@@ -15,6 +16,8 @@ const string TRUE_STR = "true";
 const string FALSE_STR = "false";
 
 const int ID_LENGTH = 8;
+
+const unordered_set<string> KEY_COMMANDS = { "key", "time", "tempo" };
 
 IdentifierMap Generator::s_identifiers;
 
@@ -46,59 +49,6 @@ TokenPtr<> Generator::make_value(const YAML::Node &node) const
   return make_shared<String>(value);
 }
 
-TokenPtr<> Generator::make_score(const YAML::Node &root) const
-{
-  if(!root["parts"].IsSequence())
-    throw Error("score.parts must be an array");
-
-  auto music_block = make_shared<Block>(Block::BRACKET);
-
-  for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
-    *music_block << make_part_ref(*it);
-
-  auto score_block = make_shared<Block>(Block::BRACE);
-  *score_block << music_block;
-
-  auto score = make_shared<Command>("score");
-  *score << score_block;
-
-  return score;
-}
-
-TokenPtr<> Generator::make_part_ref(const YAML::Node &node) const
-{
-  if(node.IsSequence()) {
-    auto block = make_shared<Block>(Block::BRACKET);
-
-    for(auto it = node.begin(); it != node.end(); it++)
-      *block << make_part_ref(*it);
-
-    auto group = make_shared<Command>("new");
-    *group << make_shared<Literal>("StaffGroup");
-    *group << block;
-
-    return group;
-  }
-  else
-    return make_shared<Command>(id(node.as<string>()));
-}
-
-TokenPtr<> Generator::make_book(const YAML::Node &node) const
-{
-  if(!node.IsSequence())
-    throw Error("a book must be an array of scores");
-
-  auto block = make_shared<Block>(Block::BRACE);
-
-  for(auto it = node.begin(); it != node.end(); it++)
-    *block << make_score(*it);
-
-  auto book = make_shared<Command>("book");
-  *book << block;
-
-  return book;
-}
-
 string Generator::id(const std::string &name) const
 {
   if(s_identifiers.left.count(name))
@@ -120,94 +70,34 @@ string Generator::id(const std::string &name) const
   return identifier;
 }
 
-Header::Header()
+KeyValue::KeyValue()
 {
-  m_tagline = make_shared<Variable>("tagline", make_shared<Boolean>(false));
-
-  m_block = make_shared<Block>(Block::BRACE);
-  *m_block << m_tagline;
-
-  m_token = make_shared<Command>("header");
-  *m_token << m_block;
+  m_token = make_shared<Block>(Block::BRACE);
 }
 
-void Header::read_yaml(const YAML::Node &root)
+void KeyValue::read_yaml(const YAML::Node &root)
 {
   if(!root.IsMap())
-    throw Error("header must be a map");
+    throw Error("keyvalue block must be a map");
 
   for(auto it = root.begin(); it != root.end(); it++) {
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    if(key == "tagline")
-      *m_tagline = make_value(node);
+    bool append = true;
+
+    for(const SpecialHandler &h : m_handlers)
+      if(!(append = append && h(key, node))) break;
+
+    if(!append) continue;
+
+    if(KEY_COMMANDS.count(key)) {
+      auto command = make_shared<Command>(key);
+      *command << make_shared<Literal>(node.as<string>());
+      *m_token << command;
+    }
     else
-      *m_block << make_variable(key, node);
-  }
-
-  if(!root["tagline"])
-    *m_block << make_shared<Variable>("tagline", make_shared<Boolean>(false));
-}
-
-const string PAPER_SIZE = "paper-size";
-
-Paper::Paper()
-{
-  m_paper_size = make_shared<String>("letter");
-
-  auto ps_func = make_shared<Function>("set-paper-size");
-  *ps_func << m_paper_size;
-
-  m_block = make_shared<Block>(Block::BRACE);
-  *m_block << ps_func;
-
-  m_token = make_shared<Command>("paper");
-  *m_token << m_block;
-}
-
-void Paper::read_yaml(const YAML::Node &root)
-{
-  for(auto it = root.begin(); it != root.end(); it++) {
-    const string key = it->first.as<string>();
-    const YAML::Node node = it->second;
-
-    if(key == PAPER_SIZE)
-      *m_paper_size = node.as<string>();
-    else
-      *m_block << make_variable(key, node);
-  }
-}
-
-enum SetupKey { S_KEY, S_TIME, S_TEMPO };
-
-const map<string, SetupKey> SETUP_KEYS = {
-  {"key", S_KEY},
-  {"time", S_TIME},
-  {"tempo", S_TEMPO},
-};
-
-Setup::Setup()
-{
-  m_block = make_shared<Block>(Block::BRACE);
-  *m_block << make_shared<Command>("compressFullBarRests");
-
-  m_token = make_shared<Variable>(id("setup"), m_block);
-}
-
-void Setup::read_yaml(const YAML::Node &root)
-{
-  for(auto it = root.begin(); it != root.end(); it++) {
-    const string key = it->first.as<string>();
-    const YAML::Node node = it->second;
-
-    if(!SETUP_KEYS.count(key))
-      throw Error(format("invalid key '%s'") % key);
-
-    auto command = make_shared<Command>(key);
-    *command << make_shared<Literal>(node.as<string>());
-
-    *m_block << command;
+      *m_token << make_variable(key, node);
   }
 }
 
@@ -365,10 +255,59 @@ Document::Document()
     << warning
     << version
     << point_click
-    << m_header.token()
-    << m_paper.token()
-    << m_setup.token()
   ;
+
+  prepare_header();
+  prepare_paper();
+  prepare_setup();
+}
+
+void Document::prepare_header()
+{
+  auto tagline = make_shared<Variable>("tagline", make_shared<Boolean>(false));
+  *m_header.token() << tagline;
+
+  m_header.add_handler([=](const string &key, const YAML::Node &node) {
+    if(key == "tagline") {
+      *tagline = make_value(node);
+      return false;
+    }
+
+    return true;
+  });
+
+  auto header_cmd = make_shared<Command>("header");
+  *header_cmd << m_header.token();
+  *m_token << header_cmd;
+}
+
+void Document::prepare_paper()
+{
+  auto paper_size = make_shared<String>("letter");
+  auto ps_func = make_shared<Function>("set-paper-size");
+  *ps_func << paper_size;
+  *m_paper.token() << ps_func;
+
+  m_paper.add_handler([=](const string &key, const YAML::Node &node) {
+    if(key == "paper-size") {
+      *paper_size = node.as<string>();
+      return false;
+    }
+
+    return true;
+  });
+
+  auto paper_cmd = make_shared<Command>("paper");
+  *paper_cmd << m_paper.token();
+  *m_token << paper_cmd;
+}
+
+void Document::prepare_setup()
+{
+  *m_setup.token() << make_shared<Command>("compressFullBarRests");
+
+  auto setup = make_shared<Variable>(id("setup"), m_setup.token());
+  *m_token << setup;
 }
 
 void Document::read_yaml(const YAML::Node &root)
@@ -396,7 +335,7 @@ void Document::read_yaml(const YAML::Node &root)
       m_setup.read_yaml(node);
       break;
     case D_PARTS:
-      add_parts_from_yaml(node);
+      add_parts(node);
       break;
     case D_BOOK:
       *m_token << make_book(node);
@@ -413,7 +352,7 @@ void Document::read_yaml(const YAML::Node &root)
   }
 }
 
-void Document::add_parts_from_yaml(const YAML::Node &root)
+void Document::add_parts(const YAML::Node &root)
 {
   for(auto it = root.begin(); it != root.end(); it++) {
     const string key = it->first.as<string>();
@@ -421,4 +360,79 @@ void Document::add_parts_from_yaml(const YAML::Node &root)
 
     *m_token << Part::from_yaml(key, node).token();
   }
+}
+
+TokenPtr<> Document::make_score(const YAML::Node &root) const
+{
+  if(!root["parts"].IsSequence())
+    throw Error("score.parts must be an array");
+
+  auto music_block = make_shared<Block>(Block::BRACKET);
+
+  for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
+    *music_block << make_part_ref(*it);
+
+  auto score_block = make_shared<Block>(Block::BRACE);
+  *score_block << music_block;
+
+  if(root["layout"]) {
+    KeyValue block;
+
+    if(root["layout"].IsMap())
+      block.read_yaml(root["layout"]);
+
+    auto layout = make_shared<Command>("layout");
+    *layout << block.token();
+    *score_block << layout;
+  }
+
+  if(root["midi"]) {
+    KeyValue block;
+
+    if(root["midi"].IsMap())
+      block.read_yaml(root["midi"]);
+
+    auto midi = make_shared<Command>("midi");
+    *midi << block.token();
+    *score_block << midi;
+  }
+
+  auto score = make_shared<Command>("score");
+  *score << score_block;
+
+  return score;
+}
+
+TokenPtr<> Document::make_part_ref(const YAML::Node &node) const
+{
+  if(node.IsSequence()) {
+    auto block = make_shared<Block>(Block::BRACKET);
+
+    for(auto it = node.begin(); it != node.end(); it++)
+      *block << make_part_ref(*it);
+
+    auto group = make_shared<Command>("new");
+    *group << make_shared<Literal>("StaffGroup");
+    *group << block;
+
+    return group;
+  }
+  else
+    return make_shared<Command>(id(node.as<string>()));
+}
+
+TokenPtr<> Document::make_book(const YAML::Node &node) const
+{
+  if(!node.IsSequence())
+    throw Error("a book must be an array of scores");
+
+  auto block = make_shared<Block>(Block::BRACE);
+
+  for(auto it = node.begin(); it != node.end(); it++)
+    *block << make_score(*it);
+
+  auto book = make_shared<Command>("book");
+  *book << block;
+
+  return book;
 }
