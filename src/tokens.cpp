@@ -61,10 +61,10 @@ string Block::code() const
   sstream ss;
 
   switch(m_type) {
-  case BRACE:
+  case BraceStyle:
     ss << "{";
     break;
-  case BRACKET:
+  case BracketStyle:
     ss << "<<";
     break;
   }
@@ -84,10 +84,10 @@ string Block::code() const
   }
 
   switch(m_type) {
-  case BRACE:
+  case BraceStyle:
     ss << "}";
     break;
-  case BRACKET:
+  case BracketStyle:
     ss << ">>";
     break;
   }

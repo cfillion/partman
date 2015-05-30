@@ -82,7 +82,7 @@ string Generator::id(const std::string &name) const
 
 KeyValue::KeyValue()
 {
-  m_token = make_shared<Block>(Block::BRACE);
+  m_token = make_shared<Block>(Block::BraceStyle);
 }
 
 void KeyValue::read_yaml(const YAML::Node &root)
@@ -139,7 +139,7 @@ Part::Part(const std::string &name)
 
   prepare_with();
 
-  m_staff_block = make_shared<Block>(Block::BRACKET);
+  m_staff_block = make_shared<Block>(Block::BracketStyle);
   *m_staff << m_staff_block;
 
   m_token = make_shared<Variable>(m_id, m_staff);
@@ -156,7 +156,7 @@ void Part::prepare_with()
   m_performer = make_shared<Command>("remove");
   *m_performer << make_shared<String>("Staff_performer");
 
-  auto block = make_shared<Block>(Block::BRACE);
+  auto block = make_shared<Block>(Block::BraceStyle);
   *block << make_shared<Variable>("instrumentName", m_long_name);
   *block << make_shared<Variable>("shortInstrumentName", m_short_name);
   *block << make_shared<Variable>("midiInstrument", m_instrument);
@@ -173,7 +173,7 @@ void Part::prepare_music()
   auto include = make_shared<Command>("include");
   *include << make_shared<String>("parts/" + m_name + ".ily");
 
-  m_music_block = make_shared<Block>(Block::BRACE);
+  m_music_block = make_shared<Block>(Block::BraceStyle);
   *m_music_block << make_shared<Command>(id("setup"));
   *m_music_block << include;
 }
@@ -379,12 +379,12 @@ TokenPtr<> Document::make_score(const YAML::Node &root) const
   if(!root["parts"].IsSequence())
     throw Error("score.parts must be an array");
 
-  auto music_block = make_shared<Block>(Block::BRACKET);
+  auto music_block = make_shared<Block>(Block::BracketStyle);
 
   for(auto it = root["parts"].begin(); it != root["parts"].end(); it++)
     *music_block << make_part_ref(*it);
 
-  auto score_block = make_shared<Block>(Block::BRACE);
+  auto score_block = make_shared<Block>(Block::BraceStyle);
   *score_block << music_block;
 
   if(root["layout"]) {
@@ -418,7 +418,7 @@ TokenPtr<> Document::make_score(const YAML::Node &root) const
 TokenPtr<> Document::make_part_ref(const YAML::Node &node) const
 {
   if(node.IsSequence()) {
-    auto block = make_shared<Block>(Block::BRACKET);
+    auto block = make_shared<Block>(Block::BracketStyle);
 
     for(auto it = node.begin(); it != node.end(); it++)
       *block << make_part_ref(*it);
@@ -438,7 +438,7 @@ TokenPtr<> Document::make_book(const YAML::Node &node) const
   if(!node.IsSequence())
     throw Error("a book must be an array of scores");
 
-  auto block = make_shared<Block>(Block::BRACE);
+  auto block = make_shared<Block>(Block::BraceStyle);
 
   for(auto it = node.begin(); it != node.end(); it++)
     *block << make_score(*it);

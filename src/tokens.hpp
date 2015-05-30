@@ -50,13 +50,13 @@ private:
 class Block : public Token
 {
 public:
-  enum BraceType { BRACE, BRACKET };
+  enum BlockStyle { BraceStyle, BracketStyle };
 
-  Block(const BraceType type) : m_type(type) {}
+  Block(const BlockStyle type) : m_type(type) {}
   virtual std::string code() const override;
 
 private:
-  BraceType m_type;
+  BlockStyle m_type;
 };
 
 class Variable : public Token
