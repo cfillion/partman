@@ -52,7 +52,7 @@ TODO:
 - [X] Organize parts (order/`StaffGroup`) differently in each score blocks
 - [X] `\book` support
 - [X] Prevent lilypond from wasting midi channels
-- [ ] Find a good unit test framework and use it
+- [X] Find a good unit test framework and use it
     ([Catch](https://github.com/philsquared/Catch)?
     [Boost.Test](http://www.boost.org/libs/test)?)
 - [ ] Drums support
