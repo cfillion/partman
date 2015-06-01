@@ -8,4 +8,10 @@ public:
   std::string code() const { return ""; }
 };
 
+class TestToken : public Token
+{
+public:
+  std::string code() const { return "test"; }
+};
+
 #endif
