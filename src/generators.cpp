@@ -72,7 +72,6 @@ string Generator::id(const std::string &name) const
   while(random_str.size() < ID_LENGTH || s_identifiers.right.count(random_str))
     random_str.push_back(rand(engine));
 
-
   const string identifier = "pm_" + random_str + "_" + name;
 
   s_identifiers.insert(Identifier(name, identifier));
