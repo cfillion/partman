@@ -38,10 +38,10 @@ public:
   virtual std::string code() const override;
   virtual bool empty() const override { return m_name.empty(); }
 
-  const std::string &get() const { return m_name; }
-  void set(const std::string &val) { m_name = val; }
+  const std::string &name() const { return m_name; }
+  void changeName(const std::string &val) { m_name = val; }
 
-  Command &operator=(const std::string &val) { set(val); return *this; }
+  Command &operator=(const std::string &val) { changeName(val); return *this; }
 
 private:
   std::string m_name;
@@ -68,10 +68,11 @@ public:
   virtual std::string code() const override;
   virtual bool empty() const override { return m_value->empty(); }
 
-  const TokenPtr<> &get() const { return m_value; }
-  void set(const TokenPtr<> val) { m_value = val; }
+  const TokenPtr<> &value() const { return m_value; }
+  void changeValue(const TokenPtr<> val) { m_value = val; }
 
-  Variable &operator=(const TokenPtr<> &val) { set(val); return *this; }
+  Variable &operator=(const TokenPtr<> &val)
+  { changeValue(val); return *this; }
 
 private:
   std::string m_name;
