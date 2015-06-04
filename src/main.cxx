@@ -4,7 +4,7 @@
 #include <sys/ioctl.h>
 #include <yaml-cpp/yaml.h>
 
-#include "../generators.hpp"
+#include "generators.hpp"
 
 using namespace std;
 using namespace boost;

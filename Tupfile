@@ -1,4 +1,6 @@
-TARGET = partman
+MAIN_TARGET = partman
+TEST_TARGET = tests
+
 CXX = clang++
 
 CXXFLAGS = -Wall -Wextra -pipe
@@ -15,8 +17,8 @@ endif
 !link  = |> $(CXX) $(CXXFLAGS) %f $(LDFLAGS) -o %o |>
 
 : foreach src/*.cpp |> !build |> build/%B.o
-: src/main/main.cpp |> !build |> build/main/%B.o
-: build/*.o build/main/main.o |> !link |> $(TARGET)
+: src/main.cxx |> !build |> build/%B.obj
+: build/*.o build/main.obj |> !link |> $(MAIN_TARGET)
 
 : foreach test/*.cpp |> !build |> build/test/%B.o
-: build/*.o build/test/*.o |> !link |> tests
+: build/*.o build/test/*.o |> !link |> $(TEST_TARGET)
