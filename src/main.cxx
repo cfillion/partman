@@ -61,13 +61,13 @@ int main(int argc, char *argv[])
   po::positional_options_description p;
   p.add("input", -1);
 
-  po::variables_map vm;
+  po::variables_map opts;
 
   try {
     po::store(po::command_line_parser(argc, argv).options(desc)
-      .positional(p).run(), vm);
+      .positional(p).run(), opts);
 
-    po::notify(vm);
+    po::notify(opts);
   }
   catch(po::error &err) {
     cerr << err.what() << endl << endl;
@@ -75,19 +75,19 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if(vm.count("help")) {
+  if(opts.count("help")) {
     cout << desc;
     return EXIT_SUCCESS;
   }
 
-  if(vm.count("version")) {
+  if(opts.count("version")) {
     cout << caption << endl;
     return EXIT_SUCCESS;
   }
 
   bool all_ok = true;
 
-  for(const string file : vm["input"].as<vector<string> >())
+  for(const string file : opts["input"].as<vector<string> >())
     all_ok = process(file) && all_ok;
 
   return all_ok ? EXIT_SUCCESS : EXIT_FAILURE;
