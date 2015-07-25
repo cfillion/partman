@@ -198,6 +198,12 @@ void Part::read_yaml(const YAML::Node &root)
         break;
       case P_TYPE:
         *m_type = node.as<string>();
+
+        if(m_type->get() == "DrumStaff") {
+          auto relative = make_shared<Command>("drummode");
+          *relative << m_music_block;
+          *m_staff_block << relative;
+        }
         break;
       case P_RELATIVE: {
         auto relative = make_shared<Command>("relative");

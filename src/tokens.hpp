@@ -112,6 +112,11 @@ public:
   Literal(const std::string value) : m_value(value) {}
   virtual std::string code() const override;
 
+  const std::string &get() const { return m_value; }
+  void set(const std::string &val) { m_value = val; }
+
+  Literal &operator=(const std::string &val) { set(val); return *this; }
+
 private:
   std::string m_value;
 };
