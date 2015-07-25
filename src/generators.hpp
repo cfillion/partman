@@ -77,6 +77,7 @@ private:
 
   std::string m_name;
   std::string m_id;
+  bool m_part_prefix;
 };
 
 class Document : public Generator

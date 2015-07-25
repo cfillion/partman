@@ -110,7 +110,7 @@ void KeyValue::read_yaml(const YAML::Node &root)
   }
 }
 
-enum PartKey { P_NAME, P_TYPE, P_RELATIVE, P_INSTRUMENT, P_PARTS };
+enum PartKey { P_NAME, P_TYPE, P_RELATIVE, P_INSTRUMENT, P_PARTS, P_PREFIX };
 
 const map<string, PartKey> PART_KEYS = {
   {"name", P_NAME},
@@ -118,6 +118,7 @@ const map<string, PartKey> PART_KEYS = {
   {"relative", P_RELATIVE},
   {"instrument", P_INSTRUMENT},
   {"parts", P_PARTS},
+  {"prefix", P_PREFIX},
 };
 
 Part Part::from_yaml(const std::string &name, const YAML::Node &node)
@@ -128,7 +129,7 @@ Part Part::from_yaml(const std::string &name, const YAML::Node &node)
 }
 
 Part::Part(const std::string &name)
-  : m_name(name)
+  : m_name(name), m_part_prefix(true)
 {
   m_id = id(name);
 
@@ -219,6 +220,9 @@ void Part::read_yaml(const YAML::Node &root)
       case P_PARTS:
         add_sub_parts(node);
         break;
+      case P_PREFIX:
+        m_part_prefix = node.as<bool>();
+        break;
     }
   }
 }
@@ -251,7 +255,8 @@ void Part::add_sub_parts(const YAML::Node &root)
     const string key = it->first.as<string>();
     const YAML::Node node = it->second;
 
-    const Part sub = Part::from_yaml(m_name + "_" + key, node);
+    const string name = m_part_prefix ? m_name + "_" + key : key;
+    const Part sub = Part::from_yaml(name, node);
     *m_staff_block << sub.staff();
   }
 }
