@@ -17,7 +17,8 @@ TEST_CASE("Default token", M) {
   }
 
   SECTION("Stream operator") {
-    stringstream ss = stringstream() << tk;
+    stringstream ss = stringstream();
+    ss << tk;
     REQUIRE(ss.str() == tk->code());
   }
 
