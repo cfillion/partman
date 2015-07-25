@@ -152,13 +152,17 @@ void Part::prepare_with()
   m_short_name = make_shared<String>();
   m_instrument = make_shared<String>();
 
-  m_performer = make_shared<Command>("remove");
+  auto no_performer = make_shared<Command>("remove");
+  *no_performer << make_shared<String>("Staff_performer");
+
+  m_performer = make_shared<Command>("");
   *m_performer << make_shared<String>("Staff_performer");
 
   auto block = make_shared<Block>(Block::BraceStyle);
   *block << make_shared<Variable>("instrumentName", m_long_name);
   *block << make_shared<Variable>("shortInstrumentName", m_short_name);
   *block << make_shared<Variable>("midiInstrument", m_instrument);
+  *block << no_performer;
   *block << m_performer;
 
   auto with = make_shared<Command>("with");
