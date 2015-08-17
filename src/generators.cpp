@@ -136,6 +136,8 @@ Part::Part(const std::string &name)
   m_type = make_shared<Literal>("Staff");
   m_staff = make_shared<Command>("new");
   *m_staff << m_type;
+  *m_staff << make_shared<Literal>("=");
+  *m_staff << make_shared<String>(name);
 
   prepare_with();
 
