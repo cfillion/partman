@@ -425,6 +425,17 @@ TokenPtr<> Document::make_score(const YAML::Node &root) const
     *score_block << midi;
   }
 
+  if(root["header"]) {
+    KeyValue block;
+
+    if(root["header"].IsMap())
+      block.read_yaml(root["header"]);
+
+    auto header = make_shared<Command>("header");
+    *header << block.token();
+    *score_block << header;
+  }
+
   auto score = make_shared<Command>("score");
   *score << score_block;
 
