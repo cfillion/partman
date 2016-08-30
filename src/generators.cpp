@@ -72,9 +72,13 @@ string Generator::id(const std::string &name) const
   while(random_str.size() < ID_LENGTH || s_identifiers.right.count(random_str))
     random_str.push_back(rand(engine));
 
-  const string identifier = "pm_" + random_str + "_" + name;
+  string alphaName = name;
+  alphaName.erase(remove_if(alphaName.begin(), alphaName.end(),
+    [](const char c) { return !isalnum(c); }), alphaName.end());
 
-  s_identifiers.insert(Identifier(name, identifier));
+  const string identifier = "pm_" + random_str + "_" + alphaName;
+
+  s_identifiers.insert({name, identifier});
 
   return identifier;
 }
